@@ -1,54 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class HomePage extends StatelessWidget {
-  
+void main() {
+  runApp(MyApp());
+}
 
+class ThemeNotifier with ChangeNotifier {
+  ThemeData _currentTheme = ThemeData.light();
+
+  ThemeData get currentTheme => _currentTheme;
+
+  void setTheme(ThemeData theme) {
+    _currentTheme = theme;
+    notifyListeners();
+  }
+}
+
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-
-final theme =Provider.of<ThemeChanger>(context);
-
-    return Scaffold(
-      appBar: AppBar( title: Text('AppBar'),
-      ),
-      body:ListaBotones() ,
-      floatingActionButton: FloatingActionButton(
-         child: Icon(Icons.add),
-         onPressed: ()=>theme.setTheme(ThemeData(
-          brightness: Brightness.light,
-          primaryColor: Colors.lime,
-          floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: Colors.lime)
-         )),
+    return ChangeNotifierProvider(
+      create: (context) => ThemeNotifier(),
+      child: Consumer<ThemeNotifier>(
+        builder: (context, themeNotifier, child) {
+          return MaterialApp(
+            title: 'Custom Theme App',
+            theme: themeNotifier.currentTheme,
+            home: HomeScreen(),
+          );
+        },
       ),
     );
   }
 }
 
-class ListaBotones extends StatelessWidget{
-@override
-Widget build(BuildContext context){
+class HomeScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Custom Theme App'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Personaliza el tema y las fuentes',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                _showThemeDialog(context);
+              },
+              child: Text('Cambiar Tema'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-  final theme = Provider.of<ThemeChanger>(context);
-
-  return Column(
-children:<Widget>[
-FlatButton(child:Text('Light'),
-onPressed :()=>theme.setTheme(ThemeData.light()),
-),
-
-FlatButton(child:Text('Dart'),
-onPressed :()=>theme.setTheme(ThemeData.dark()),
-),
-
-] ,
-
-  );
-}
-
-  FlatButton({required Text child, required Function() onPressed}) {}
-}
-
-class ThemeChanger {
-  setTheme(ThemeData themeData) {}
+  void _showThemeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Selecciona un Tema'),
+          content: Column(
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Provider.of<ThemeNotifier>(context, listen: false)
+                      .setTheme(ThemeData.light());
+                  Navigator.pop(context);
+                },
+                child: Text('Tema Claro'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Provider.of<ThemeNotifier>(context, listen: false)
+                      .setTheme(ThemeData.dark());
+                  Navigator.pop(context);
+                },
+                child: Text('Tema Oscuro'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
